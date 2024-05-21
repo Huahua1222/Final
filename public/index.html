@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>星巴克價格波動</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+<div class="container mt-5">
+  <h1 class="mb-4">星巴克價格波動</h1>
+
+  <!-- 查詢表單 -->
+  <div class="card mb-4">
+    <div class="card-header">
+      查詢價格
+    </div>
+    <div class="card-body">
+      <form id="searchPriceForm">
+        <div class="mb-3">
+          <label for="searchYear" class="form-label">年(2022~2024)</label>
+          <input type="number" class="form-control" id="searchYear">
+        </div>
+        <div class="mb-3">
+          <label for="searchMonth" class="form-label">月</label>
+          <input type="number" class="form-control" id="searchMonth">
+        </div>
+        <div class="mb-3">
+          <label for="searchDay" class="form-label">日</label>
+          <input type="number" class="form-control" id="searchDay">
+        </div>
+        <div class="mb-3">
+          <label for="searchPrice" class="form-label">價格</label>
+          <input type="number" step="0.01" class="form-control" id="searchPrice">
+        </div>
+        <button type="submit" class="btn btn-primary">查詢</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 顯示價格表格 -->
+  <div class="card">
+    <div class="card-header">
+      價格清單
+    </div>
+    <div class="card-body">
+      <table class="table table-bordered">
+        <thead>
+        <tr>
+          <th>年</th>
+          <th>月</th>
+          <th>日</th>
+          <th>價格</th>
+        </tr>
+        </thead>
+        <tbody id="pricesTableBody">
+        <!-- 表格內容將由 JavaScript 動態插入 -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+
+  // 查詢價格
+  $('#searchPriceForm').on('submit', function(e) {
+    e.preventDefault();
+    const year = $('#searchYear').val();
+    const month = $('#searchMonth').val();
+    const day = $('#searchDay').val();
+    const price = $('#searchPrice').val();
+
+    const queryParams = $.param({ year, month, day, price });
+    $.get('/api/search?' + queryParams, function(data) {
+      displayPrices(data);
+    }).fail(function(xhr) {
+      alert('Error: ' + xhr.responseJSON.error);
+    });
+  });
+
+  // 載入所有價格
+  function loadPrices() {
+    $.get('/api/prices', function(data) {
+      displayPrices(data);
+    }).fail(function(xhr) {
+      alert('Error: ' + xhr.responseJSON.error);
+    });
+  }
+
+  // 顯示價格資料在表格中
+  function displayPrices(prices) {
+    const $tbody = $('#pricesTableBody');
+    $tbody.empty();
+    prices.forEach(price => {
+      const row = `<tr>
+                    <td>${price.year}</td>
+                    <td>${price.month}</td>
+                    <td>${price.day}</td>
+                    <td>${price.price}</td>
+                </tr>`;
+      $tbody.append(row);
+    });
+  }
+
+  // 初始載入所有價格
+  $(document).ready(function() {
+    loadPrices();
+  });
+</script>
+</body>
+</html>
