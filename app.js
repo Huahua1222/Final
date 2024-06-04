@@ -41,20 +41,9 @@ app.get('/api/prices', (req, res) => {
         res.json(rows);
     });
 });
-//
-// app.get('/api', (req, res) => {
-//     const price_value = req.query.price;
-//     db.all('SELECT * FROM prices WHERE price =?' , price_value,(err, rows) => {
-//         if (err) {
-//             res.status(500).json({error:err.message});
-//             return;
-//         }
-//         res.json(rows);
-//     });
-// });
 
 app.get('/api/search', (req, res) => {
-    const { year, month, day, price } = req.query;
+    const { year, month, day, minPrice, maxPrice } = req.query;
     let query = 'SELECT * FROM prices WHERE 1=1';
     const params = [];
 
@@ -70,10 +59,14 @@ app.get('/api/search', (req, res) => {
         query += ' AND day = ?';
         params.push(day);
     }
-    if (price) {
-        query += ' AND price = ?';
-        params.push(price);
+    if (minPrice && maxPrice) {
+        query += ' AND price BETWEEN ? AND ?';
+        params.push(minPrice);
+        params.push(maxPrice);
     }
+
+    // 添加 ORDER BY 子句
+    query += ' ORDER BY year ASC, month ASC, day ASC';
 
     db.all(query, params, (err, rows) => {
         if (err) {
@@ -83,5 +76,7 @@ app.get('/api/search', (req, res) => {
         res.json(rows);
     });
 });
+
+
 
 module.exports = app;
